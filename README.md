@@ -147,3 +147,5 @@ Full-Stack Developer | MERN | Security-Focused Engineering
 🌐 Portfolio: https://ankur-sharma-20.vercel.app
 🐙 GitHub: https://github.com/Shsrma
 
+<img width="953" height="535" alt="A1" src="https://github.com/user-attachments/assets/224a2417-58ed-46b8-8917-14bd8b4a7cd4" />
+<img width="959" height="533" alt="A2" src="https://github.com/user-attachments/assets/b91e54b2-7298-4610-a609-4fffede5d6b8" />
