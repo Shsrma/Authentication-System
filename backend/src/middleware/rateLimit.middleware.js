@@ -1,0 +1,1 @@
+// Rate limiting is handled in server.js with express-rate-limit
