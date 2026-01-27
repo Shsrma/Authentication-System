@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const {
   generateAccessToken,
   generateRefreshToken,
-} = require("../utils/token");
+} = require("../utils/token.util");
 
 // Signup
 exports.signup = async (req, res) => {
