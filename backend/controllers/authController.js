@@ -1,22 +1,10 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
-const generateAccessToken = (user) => {
-  return jwt.sign(
-    { id: user._id, email: user.email },
-    process.env.JWT_SECRET,
-    { expiresIn: "15m" }
-  );
-};
-
-const generateRefreshToken = (user) => {
-  return jwt.sign(
-    { id: user._id },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: "7d" }
-  );
-};
+const {
+  generateAccessToken,
+  generateRefreshToken
+} = require("../utils/token");
 
 exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -27,7 +15,7 @@ exports.signup = async (req, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  const user = await User.create({
+  await User.create({
     name,
     email,
     password: hashedPassword
@@ -51,30 +39,14 @@ exports.login = async (req, res) => {
   user.refreshToken = refreshToken;
   await user.save();
 
-  res.json({ accessToken, refreshToken });
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    sameSite: "strict"
+  });
+
+  res.json({ accessToken });
 };
 
 exports.refresh = async (req, res) => {
-  const { refreshToken } = req.body;
-
+  const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) return res.sendStatus(401);
-
-  try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.sendStatus(403);
-    }
-
-    const accessToken = generateAccessToken(user);
-    res.json({ accessToken });
-  } catch {
-    res.sendStatus(403);
-  }
-};
-
-exports.profile = async (req, res) => {
-  const user = await User.findById(req.user.id).select("-password");
-  res.json(user);
-};
