@@ -23,8 +23,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     const response = await api.post("/auth/login", credentials);
-    await checkAuth(); // Refresh auth state
-    return response;
+    if (!response.data.twoFactorRequired) {
+      await checkAuth();
+    }
+    return response.data;
   };
 
   const signup = async (userData) => {

@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import TwoFactorSetup from "./pages/TwoFactorSetup";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const pageVariants = {
@@ -61,6 +62,22 @@ export default function App() {
                 transition={pageTransition}
               >
                 <Profile />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/2fa-setup"
+          element={
+            <ProtectedRoute>
+              <motion.div
+                initial="initial"
+                animate="in"
+                exit="out"
+                variants={pageVariants}
+                transition={pageTransition}
+              >
+                <TwoFactorSetup />
               </motion.div>
             </ProtectedRoute>
           }

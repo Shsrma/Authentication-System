@@ -44,6 +44,14 @@ exports.login = async (req, res, next) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    if (user.isTwoFactorEnabled) {
+      return res.status(200).json({
+        message: "2FA required",
+        userId: user._id,
+        twoFactorRequired: true,
+      });
+    }
+
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 

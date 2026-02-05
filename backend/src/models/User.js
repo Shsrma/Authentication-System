@@ -29,6 +29,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       select: false,
     },
+    twoFactorSecret: {
+      type: String,
+      select: false,
+    },
+    isTwoFactorEnabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
