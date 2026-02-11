@@ -3,6 +3,82 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { generateAccessToken, generateRefreshToken } = require("../utils/token.util");
 const { success } = require("../utils/response.util");
+const admin = require("../config/firebase");
+
+// Google Login
+exports.googleLogin = async (req, res, next) => {
+  try {
+    const { token } = req.body; // Firebase ID token from frontend
+
+    if (!token) {
+      return res.status(400).json({ message: "Token is required" });
+    }
+
+    // Verify Firebase Token
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const { uid, email, name, picture } = decodedToken;
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      // User exists, update googleId if not present
+      if (!user.googleId) {
+        user.googleId = uid;
+        // Optionally update avatar if missing
+        if (!user.avatar) user.avatar = picture;
+        await user.save();
+      }
+    } else {
+      // Create new user
+      user = await User.create({
+        name: name || "User",
+        email,
+        googleId: uid,
+        avatar: picture,
+        // No password for Google users
+      });
+    }
+
+    // Check if 2FA is enabled (optional for Google Auth? Usually Google Auth *is* 2FA, 
+    // but if we want to enforce our own 2FA on top of Google, we can. 
+    // For now, let's treat Google Auth as sufficient or check isTwoFactorEnabled if they set it up previously.)
+    
+    // If we want to enforce our system's 2FA even for Google users:
+    if (user.isTwoFactorEnabled) {
+       return res.status(200).json({
+        message: "2FA required",
+        userId: user._id,
+        twoFactorRequired: true,
+      });
+    }
+
+    // Generate tokens
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    // Set Cookies
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    success(res, { userId: user._id, avatar: user.avatar }, "Login successful");
+  } catch (error) {
+    next(error);
+  }
+};
 
 // Signup
 exports.signup = async (req, res, next) => {

@@ -2,9 +2,9 @@ const express = require("express");
 const {
   signup,
   login,
+  googleLogin,
   refreshToken,
   logout,
-  getProfile,
   getProfile,
 } = require("../controllers/authController");
 const { setup2FA, verify2FA, validate2FA } = require("../controllers/twoFactorController");
@@ -14,8 +14,8 @@ const router = express.Router();
 
 router.post("/signup", signup);
 router.post("/login", login);
+router.post("/google-login", googleLogin);
 router.post("/refresh", refreshToken);
-router.post("/logout", logout);
 router.post("/logout", logout);
 router.get("/profile", protect, getProfile);
 

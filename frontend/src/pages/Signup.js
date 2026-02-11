@@ -2,12 +2,15 @@ import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AuthContext } from "../context/AuthContext";
+import axios from "axios";
+import { auth, googleProvider } from "../config/firebase";
+import { signInWithPopup } from "firebase/auth";
 
 export default function Signup() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { signup } = useContext(AuthContext);
+  const { signup, checkAuth } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -25,6 +28,29 @@ export default function Signup() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const token = await result.user.getIdToken();
+
+      const res = await axios.post("http://localhost:5000/api/auth/google-login", { token }, { withCredentials: true });
+      
+      // For signup, we just login directly if they exist or create new.
+      // If 2FA is enabled (unlikely for new signup via Google, but possible if email exists), handle it.
+      if (res.data.twoFactorRequired) {
+        // Signup page doesn't have 2FA logic/UI? 
+        // We should probably redirect to Login page with some state, or handle it here?
+        // Simpler: Just navigate to login if 2FA is needed.
+        navigate("/login", { state: { userId: res.data.userId, twoFactorRequired: true } });
+      } else {
+        await checkAuth();
+        navigate("/profile");
+      }
+    } catch (error) {
+      setError("Google Signup Failed");
+    }
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -38,10 +64,7 @@ export default function Signup() {
       background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       padding: "20px",
     }}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
+      <div
         style={{
           background: "white",
           padding: "40px",
@@ -174,6 +197,26 @@ export default function Signup() {
           </motion.button>
         </form>
 
+        <div style={{ margin: "20px 0", textAlign: "center" }}>
+          <p style={{ color: "#aaa", marginBottom: "10px" }}>OR</p>
+          <button
+            onClick={handleGoogleLogin}
+            type="button"
+            style={{
+              width: "100%",
+              padding: "12px",
+              background: "#db4437",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
+            Sign up with Google
+          </button>
+        </div>
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -188,7 +231,7 @@ export default function Signup() {
             Login
           </Link>
         </motion.p>
-      </motion.div>
+      </div>
     </div>
   );
 }

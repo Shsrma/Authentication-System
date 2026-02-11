@@ -18,9 +18,12 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "https://apis.google.com", "https://www.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:", "https://*.googleusercontent.com"],
+      connectSrc: ["'self'", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://www.googleapis.com"],
+      frameSrc: ["'self'", "https://*.firebaseapp.com", "https://*.google.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
     },
   },
 }));

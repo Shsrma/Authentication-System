@@ -69,11 +69,41 @@ export default function Profile() {
           <p style={{ color: "#666", marginBottom: "10px" }}>
             <strong>Email:</strong> {user.email}
           </p>
+          <p style={{ color: "#666", marginBottom: "10px" }}>
+            <strong>2FA Status:</strong>{" "}
+            <span style={{ color: user.isTwoFactorEnabled ? "#28a745" : "#dc3545" }}>
+              {user.isTwoFactorEnabled ? "Enabled ✓" : "Disabled"}
+            </span>
+          </p>
           <p style={{ color: "#666" }}>
             <strong>Member since:</strong>{" "}
             {new Date(user.createdAt).toLocaleDateString()}
           </p>
         </motion.div>
+
+        {!user.isTwoFactorEnabled && (
+          <motion.button
+            onClick={() => navigate("/2fa-setup")}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              padding: "12px 24px",
+              background: "#28a745",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "16px",
+              cursor: "pointer",
+              marginBottom: "10px",
+              transition: "background 0.2s",
+            }}
+          >
+            Setup 2FA
+          </motion.button>
+        )}
 
         <motion.button
           onClick={handleLogout}

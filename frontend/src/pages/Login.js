@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
+import { auth, googleProvider } from "../config/firebase";
+import { signInWithPopup } from "firebase/auth";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -11,7 +13,7 @@ export default function Login() {
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useContext(AuthContext);
+  const { login, checkAuth } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -49,6 +51,25 @@ export default function Login() {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const token = await result.user.getIdToken();
+
+      const res = await axios.post("http://localhost:5000/api/auth/google-login", { token }, { withCredentials: true });
+      
+      if (res.data.twoFactorRequired) {
+        setStep("2fa");
+        setUserId(res.data.userId);
+      } else {
+        await checkAuth(); // Update context
+        navigate("/profile");
+      }
+    } catch (error) {
+      setError("Google Login Failed");
+    }
+  };
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -62,10 +83,7 @@ export default function Login() {
       background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       padding: "20px",
     }}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
+      <div
         style={{
           background: "white",
           padding: "40px",
@@ -206,6 +224,26 @@ export default function Login() {
           </motion.button>
         </form>
 
+        <div style={{ margin: "20px 0", textAlign: "center" }}>
+          <p style={{ color: "#aaa", marginBottom: "10px" }}>OR</p>
+          <button
+            onClick={handleGoogleLogin}
+            type="button"
+            style={{
+              width: "100%",
+              padding: "12px",
+              background: "#db4437",
+              color: "white",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "16px",
+              cursor: "pointer",
+            }}
+          >
+            Sign in with Google
+          </button>
+        </div>
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -220,7 +258,7 @@ export default function Login() {
             Sign up
           </Link>
         </motion.p>
-      </motion.div>
+      </div>
     </div>
   );
 }
